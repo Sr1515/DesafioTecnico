@@ -1,7 +1,5 @@
-// src/app/pages/favorites/favorites.component.ts
-
 import { Component, OnInit, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router'; // Router (o serviço) é usado, RouterLink (a diretiva) não
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
 import { PokemonService, Pokemon } from '../../services/pokemon.service';
@@ -12,11 +10,13 @@ import { NavbarComponent } from '../../shared/navbar/navbar';
 @Component({
   selector: 'app-favorites',
   standalone: true,
-  imports: [CommonModule, RouterLink, PokemonCardComponent, NavbarComponent],
+  // RouterLink removido dos imports
+  imports: [CommonModule, PokemonCardComponent, NavbarComponent], 
   templateUrl: './favorites.html',
   styleUrls: ['../home/home.css'] 
 })
 export class FavoritesComponent implements OnInit {
+
   private pokemonService = inject(PokemonService);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -37,6 +37,7 @@ export class FavoritesComponent implements OnInit {
   }
 
   loadUserPokemons(): void {
+    
     this.loading = true;
     
     this.pokemonService.getUsersPokemon(this.currentUserId!, 'favorito')

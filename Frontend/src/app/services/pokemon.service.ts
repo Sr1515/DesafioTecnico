@@ -1,8 +1,7 @@
-// pokemon.service.ts (Versão FINAL COMPLETA)
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'; 
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs'; // Importante: 'of' é essencial
+// Não é necessário 'switchMap' neste caso, mas 'of' é crucial.
 import { AuthService } from './auth.service';
 
 export interface Type {
@@ -19,7 +18,7 @@ export interface Pokemon {
   id: number;
   nome: string;
   imagem: string;
-  tipos: string[]; 
+  tipos:  Type[]; 
 }
 export interface UserPokemonRecord {
   idPokemonUsuario: number;
@@ -37,12 +36,11 @@ export interface UserPokemonData {
   favorito?: boolean;
 }
 
-// --- SERVICE ---
-
 @Injectable({
   providedIn: 'root'
 })
 export class PokemonService {
+
   private apiUrl = 'http://127.0.0.1:8000/api/pokemon/';
   private userPokemonUrl = 'http://127.0.0.1:8000/api/pokemon-usuario/'; 
 
@@ -51,6 +49,7 @@ export class PokemonService {
     private authService: AuthService
   ) {}
 
+  // formata o headers
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders({
@@ -59,24 +58,41 @@ export class PokemonService {
     });
   }
 
+  // formata os pokemons 
   private mapToPokemon(data: any): Pokemon {
-    const id = Number(data.id || data.codigo || data.url?.split('/').filter(Boolean).pop());
-    let tipos: string[] = [];
+    const id = Number(
+      data.id ?? 
+      data.codigo ?? 
+      data.url?.split('/').filter(Boolean).pop()
+    );
+    
+    let tipos: Type[] = [];
 
-    if (data.tipos && Array.isArray(data.tipos)) {
-        tipos = data.tipos; 
-    } else if (data.tipos_nomes && Array.isArray(data.tipos_nomes)) {
-        tipos = data.tipos_nomes;
+    if (Array.isArray(data.tipos) && data.tipos.length > 0) {
+        tipos = data.tipos;
+    } else if (Array.isArray(data.tipos_nomes) && data.tipos_nomes.length > 0) {
+        tipos = data.tipos_nomes.map((name: string, index: number) => ({ 
+            id: index + 1, 
+            name: name 
+        }));
     }
     
-    const nome = data.nome || data.name || `Pokemon ${id}`;
+    const nome = data.nome ?? data.name ?? `Pokemon ${id}`;
+    const imagem = data.imagemUrl ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 
     return {
       id,
-      nome: nome,
-      imagem: data.imagemUrl || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
-      tipos: tipos
+      nome,
+      imagem,
+      tipos,
     };
+}
+  
+  private getAllPokemonsForFilter(): Observable<Pokemon[]> {
+    return this.http.get<{ results: any[] }>(`${this.apiUrl}?limit=2000`).pipe( 
+        map(data => (data.results ?? []).map((p) => this.mapToPokemon(p))),
+        catchError(() => of([]))
+    );
   }
 
   getPokemonDetails(id: number): Observable<Pokemon | null> {
@@ -92,7 +108,6 @@ export class PokemonService {
         ...data,
         results: (data.results ?? []).map((p: any) => ({
              ...this.mapToPokemon(p),
-             tipos: [] 
         }))
       })),
       catchError(() => of({ results: [], next: null, previous: null }))
@@ -101,7 +116,7 @@ export class PokemonService {
   
   getPokemonsByGenerationId(id: number): Observable<Pokemon[]> {
     if (id === 0) {
-      return of([]);
+      return this.getAllPokemonsForFilter();
     }
     
     return this.http.get<{ results: any[] }>(`${this.apiUrl}filter-generation?id=${id}`).pipe(
@@ -111,8 +126,9 @@ export class PokemonService {
   }
 
   getPokemonsByTipoId(id: number): Observable<Pokemon[]> {
+    
     if (id === 0) {
-      return of([]);
+      return this.getAllPokemonsForFilter();
     }
     
     return this.http.get<{ results: any[] }>(`${this.apiUrl}filter-type?id=${id}`).pipe(
@@ -122,13 +138,26 @@ export class PokemonService {
   }
 
   getPokemonsByCombinedFilter(genId: number, typeId: number): Observable<Pokemon[]> {
+    
+    if (genId === 0 && typeId === 0) {
+      return this.getAllPokemonsForFilter(); 
+    }
+
+    if (typeId === 0) {
+      return this.getPokemonsByGenerationId(genId);
+    }
+    
+    if (genId === 0) {
+      return this.getPokemonsByTipoId(typeId);
+    }
+
     const url = `${this.apiUrl}filter-combined?gen_id=${genId}&type_id=${typeId}`;
     
     return this.http.get<{ results: any[] }>(url).pipe(
       map(data => (data.results ?? []).map((p) => this.mapToPokemon(p))),
       catchError(() => of([]))
     );
-  }
+}
 
   getTipos(): Observable<Type[]> {
     return this.http.get<{ tipos: Type[] }>(`${this.apiUrl}types`).pipe(
@@ -162,8 +191,6 @@ export class PokemonService {
 
   getUsersPokemon(userId: number, filter: 'favorito' | 'grupoBatalha'): Observable<UserPokemonRecord[]> {
     const headers = this.getAuthHeaders();
-    
-    // Constrói os parâmetros de filtro
     const params: { [key: string]: string } = {
         idUsuario: userId.toString()
     };
@@ -182,7 +209,6 @@ export class PokemonService {
     const headers = this.getAuthHeaders();
     const params = new HttpParams().set('codigo', pokemonCodigo);
     
-    // Filtra todos os registros do usuário e busca pelo 'codigo'
     return this.http.get<UserPokemonRecord[]>(`${this.userPokemonUrl}`, { headers, params }).pipe(
       map(records => records.find(r => r.codigo === pokemonCodigo) || null),
       catchError(error => {
@@ -197,6 +223,7 @@ export class PokemonService {
     data: UserPokemonData,
     isEquipe: boolean
   ): Observable<any> {
+    
     const headers = this.getAuthHeaders();
     const field = isEquipe ? 'grupoBatalha' : 'favorito';
     const otherField = isEquipe ? 'favorito' : 'grupoBatalha';

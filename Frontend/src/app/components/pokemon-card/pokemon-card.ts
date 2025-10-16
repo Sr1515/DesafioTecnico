@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common'; 
 import { Pokemon, PokemonService, UserPokemonData, UserPokemonRecord } from '../../services/pokemon.service'; 
-import { finalize, forkJoin } from 'rxjs'; 
+import { finalize } from 'rxjs'; 
 
 @Component({
   selector: 'app-pokemon-card',

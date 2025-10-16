@@ -1,7 +1,5 @@
-// src/app/pages/team/team.component.ts
-
 import { Component, OnInit, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router'; // Router (o serviço) é usado, RouterLink (a diretiva) não
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
 import { PokemonService, Pokemon } from '../../services/pokemon.service';
@@ -12,11 +10,13 @@ import { NavbarComponent } from '../../shared/navbar/navbar';
 @Component({
   selector: 'app-team',
   standalone: true,
-  imports: [CommonModule, RouterLink, PokemonCardComponent,  NavbarComponent],
+  // RouterLink removido dos imports
+  imports: [CommonModule, PokemonCardComponent,  NavbarComponent], 
   templateUrl: './team.html',
   styleUrls: ['../home/home.css'] 
 })
 export class TeamComponent implements OnInit {
+
   private pokemonService = inject(PokemonService);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -45,7 +45,6 @@ export class TeamComponent implements OnInit {
       )
       .subscribe({
         next: (userRecords) => {
-          // Mapeia os registros de usuário para a interface Pokemon
           this.pokemons = userRecords.map(record => ({
             id: Number(record.codigo), 
             nome: record.nome,

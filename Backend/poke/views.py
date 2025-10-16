@@ -8,7 +8,6 @@ from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework import status
 
-
 POKEAPI_BASE_URL = "https://pokeapi.co/api/v2"
 
 class PokemonAPIViewSet(viewsets.ViewSet):
@@ -25,7 +24,7 @@ class PokemonAPIViewSet(viewsets.ViewSet):
         pokemon_data = {
             "nome": data["name"],
             "id": data["id"],
-            "tipos": [t["type"]["name"] for t in data["types"]], # 💡 Os tipos estão aqui!
+            "tipos": [t["type"]["name"] for t in data["types"]],
             "imagemUrl": data["sprites"]["other"]["official-artwork"]["front_default"] if data["sprites"]["other"].get("official-artwork") else data["sprites"]["front_default"], # Adicionado campo imagemUrl
         }
         
@@ -36,42 +35,34 @@ class PokemonAPIViewSet(viewsets.ViewSet):
         limit = request.query_params.get('limit', 20)
         
         try:
-            # 1. Faz a requisição inicial da lista paginada
             response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/?offset={offset}&limit={limit}")
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. Itera sobre cada Pokémon e busca os detalhes completos
         detailed_results = []
         for result in data.get("results", []):
             try:
-                # Extrai o ID do Pokémon da URL
                 pk_id = result["url"].rstrip("/").split("/")[-1]
-                
-                # Faz a requisição de DETALHES para cada Pokémon (Lembre-se: INEFFICIENTE)
                 detail_response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/{pk_id}")
                 detail_response.raise_for_status()
                 detail_data = detail_response.json()
                 
-                # Mapeia para o formato que seu frontend Angular espera
                 detailed_results.append({
                     "id": detail_data["id"],
                     "nome": detail_data["name"],
-                    "tipos": [t["type"]["name"] for t in detail_data["types"]], # 💡 CORREÇÃO
+                    "tipos": [t["type"]["name"] for t in detail_data["types"]],
                     "imagemUrl": detail_data["sprites"]["other"]["official-artwork"]["front_default"] if detail_data["sprites"]["other"].get("official-artwork") else detail_data["sprites"]["front_default"],
                 })
             except requests.exceptions.RequestException:
-                # Ignora Pokémons que falham ao buscar detalhes
                 continue
         
-        # 3. Retorna a lista modificada
         return Response({
             "count": data.get("count"),
             "next": data.get("next"),
             "previous": data.get("previous"),
-            "results": detailed_results # 💡 Lista COMPLETA
+            "results": detailed_results
         })
     
     @action(detail=False, methods=["get"], url_path="types")
@@ -90,6 +81,7 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             }
             for t in data["results"]
         ]
+        print(tipos)
         return Response({"tipos": tipos}) 
 
 
@@ -120,6 +112,7 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             for g in data["results"]
         ]
         
+        print(generations)
         return Response({"generations": generations})
 
 
@@ -150,13 +143,12 @@ class PokemonAPIViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"], url_path="filter-combined")
     def filter_combined(self, request):
-        """Lista Pokémons combinando Geração e Tipo."""
+
         gen_id = request.query_params.get('gen_id', None)
         type_id = request.query_params.get('type_id', None)
         
-        if not gen_id or not type_id:
-            return Response({"error": "Os parâmetros 'gen_id' e 'type_id' são obrigatórios para a filtragem combinada."}, 
-                            status=status.HTTP_400_BAD_REQUEST)
+        if gen_id == 0 or type_id == 0:
+            return
         
         try:
             gen_response = requests.get(f"{POKEAPI_BASE_URL}/generation/{gen_id}/")

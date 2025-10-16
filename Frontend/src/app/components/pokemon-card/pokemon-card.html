@@ -10,9 +10,9 @@
   <div class="pokemon-types">
     <span 
       *ngFor="let tipo of pokemon.tipos" 
-      class="type-badge {{ tipo }}"
+      class="type-badge {{ tipo.name }}" 
     >
-      {{ tipo | titlecase }}
+      {{ tipo.name | titlecase }}
     </span>
     <span *ngIf="!pokemon.tipos || pokemon.tipos.length === 0" class="loading-type">
         Carregando Tipos...
