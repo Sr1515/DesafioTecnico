@@ -81,4 +81,5 @@ export class PokemonCardComponent implements OnInit {
       error: (err) => alert(`Erro ao alternar favoritos. Status: ${err.status}`)
     });
   }
+  
 }

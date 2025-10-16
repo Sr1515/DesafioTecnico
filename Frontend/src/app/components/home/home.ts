@@ -1,207 +1,195 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card';
+// src/app/pages/home/home.component.ts
+
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; 
-import { PokemonService, Type, Pokemon, Generation } from '../../services/pokemon.service';
-import { finalize, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { FormsModule } from '@angular/forms'; // Necessário para [(ngModel)] nos filtros
+import { finalize } from 'rxjs';
+
+// ⚠️ AJUSTE ESTES CAMINHOS
+import { PokemonService, Pokemon, Type, Generation } from '../../services/pokemon.service';
+import { PokemonCardComponent } from '../pokemon-card/pokemon-card';
+import { NavbarComponent } from '../../shared/navbar/navbar';
+// Importe o AuthService e Router se você tiver outras funcionalidades de usuário aqui (como checagem de status, etc.)
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, PokemonCardComponent, FormsModule], 
-  templateUrl: './home.html',
-  styleUrls: ['./home.css']
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    PokemonCardComponent, 
+    NavbarComponent
+  ],
+  templateUrl: './home.html', // Usaremos um arquivo HTML separado
+  styleUrls: ['./home.css'] // Estilos específicos para a Home
 })
 export class HomeComponent implements OnInit {
+  private pokemonService = inject(PokemonService);
+  
+  // --- Dados de Listagem ---
   pokemons: Pokemon[] = [];
-  types: Type[] = [];
-  generations: Generation[] = []; 
+  loading = false;
   
-  // Propriedades de filtro
-  selectedType: number = 0; // ID 0 para 'Todos'
-  selectedGeneration: number = 0; // ID 0 para 'Todas'
-  searchTerm: string = '';
-  
-  offset = 0;
-  limit = 20;
+  // --- Dados de Paginação e API ---
   currentPage = 1;
+  offset = 0;
+  limit = 20; // Tamanho da página
   nextPage: string | null = null;
   prevPage: string | null = null;
-  loading = false;
 
-  constructor(
-    private pokemonService: PokemonService,
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  // --- Dados de Filtro ---
+  types: Type[] = [];
+  generations: Generation[] = [];
+  
+  selectedType: number = 0; // ID 0 representa 'Todas'
+  selectedGeneration: number = 0; // ID 0 representa 'Todas'
+  searchTerm: string = '';
 
   ngOnInit(): void {
-    this.loadTypes();
-    this.loadGenerations(); 
+    // Carrega os dados iniciais
+    this.loadAllData();
+  }
+
+  /**
+   * Carrega Pokémons e as opções de filtro.
+   */
+  loadAllData(): void {
+    this.loadFilters();
     this.loadPokemons();
   }
   
-  loadGenerations() {
-    this.pokemonService.getGenerations().subscribe({
-      next: (gens) => (this.generations = gens),
-      error: (err) => console.error('Erro ao carregar gerações:', err)
-    });
-  }
-
-  loadTypes() {
-    this.pokemonService.getTipos().subscribe({
-      next: (tipos) => {
-        this.types = [{ id: 0, name: 'Todos' }, ...tipos];
-      },
-      error: (err) => console.error('Erro ao carregar tipos:', err)
-    });
-  }
-  
-  private loadPokemonDetails(pokemons: Pokemon[]): Observable<Pokemon[]> {
-    const requests = pokemons
-      .filter(p => p.tipos.length === 0) 
-      .map(p => 
-        this.pokemonService.getPokemonDetails(p.id).pipe(
-          map(details => details || p) 
-        )
-      );
-
-    if (requests.length === 0) {
-      return of(pokemons);
-    }
-    
-    // Combina todas as requisições de detalhe
-    return forkJoin(requests).pipe(
-      map(detailedPokemons => {
-        // Mapeia os detalhes de volta para a lista principal, mantendo a ordem
-        const detailedMap = new Map(detailedPokemons.map(p => [p.id, p]));
-        return pokemons.map(p => detailedMap.get(p.id) || p);
-      })
-    );
-  }
-
-  // Método centralizado de filtragem
-  loadPokemons() {
-    // 1. Prioriza a Busca por Nome
-    if (this.searchTerm.trim()) {
-        this.filterByName();
-        return;
-    }
-    
+  /**
+   * Função principal para buscar Pokémons, respeitando filtros ou paginação.
+   */
+  loadPokemons(): void {
     this.loading = true;
     
-    let pokemonObservable: Observable<Pokemon[]>;
-    let needsDetailLoad = false;
-    
-    // 2. Prioriza a FILTRAGEM COMBINADA (Geração E Tipo)
-    if (this.selectedGeneration !== 0 && this.selectedType !== 0) {
-        pokemonObservable = this.pokemonService.getPokemonsByCombinedFilter(this.selectedGeneration, this.selectedType);
-        needsDetailLoad = true; // Precisa carregar detalhes para os tipos
-    } 
-    // 3. Filtragem Simples por Geração
-    else if (this.selectedGeneration !== 0) {
-       pokemonObservable = this.pokemonService.getPokemonsByGenerationId(this.selectedGeneration);
-       needsDetailLoad = true; // Precisa carregar detalhes para os tipos
-    } 
-    // 4. Filtragem Simples por Tipo
-    else if (this.selectedType !== 0) {
-      pokemonObservable = this.pokemonService.getPokemonsByTipoId(this.selectedType);
-      needsDetailLoad = true; // Precisa carregar detalhes para os tipos
-    } 
-    // 5. Listagem Padrão Paginada
-    else {
-      pokemonObservable = this.pokemonService.getPokemons(this.offset, this.limit).pipe(
-        map(data => {
-            this.nextPage = data.next;
-            this.prevPage = data.previous;
-            return data.results;
-        })
-      );
-      needsDetailLoad = true; // Definitivamente precisa carregar detalhes aqui
-    }
-
-    pokemonObservable.pipe(
-        // Se precisar de detalhes, encadeia a chamada de detalhes
-        switchMap(pokemons => needsDetailLoad ? this.loadPokemonDetails(pokemons) : of(pokemons)),
-        finalize(() => this.loading = false)
-    ).subscribe({
-      next: (pokemons) => {
-        this.pokemons = pokemons;
-        
-        // Se estiver em modo de filtro, desabilita a paginação
-        if (this.selectedType !== 0 || this.selectedGeneration !== 0) {
-            this.nextPage = null;
-            this.prevPage = null;
-        }
-      },
-      error: (err) => console.error('Erro ao carregar/filtrar pokémons:', err)
-    });
-  }
-  
-  // CORRIGIDO: Não limpa selectedGeneration, permitindo combinação
-  filterByType(typeId: number) {
-    this.selectedType = typeId;
-    this.searchTerm = '';
-    this.offset = 0;
-    this.currentPage = 1;
-    this.loadPokemons();
-  }
-
-  // CORRIGIDO: Não limpa selectedType, permitindo combinação
-  filterByGeneration() {
-    this.searchTerm = ''; 
-    this.offset = 0;
-    this.currentPage = 1;
-    this.loadPokemons();
-  }
-  
-  // Função para buscar por nome (CORRETO: Limpa os dropdowns)
-  filterByName() {
-    const term = this.searchTerm.trim();
-    
-    this.selectedType = 0; 
-    this.selectedGeneration = 0;
-    this.offset = 0;
-    this.currentPage = 1;
-    
-    if (!term) {
-      this.loadPokemons();
+    // 1. Prioridade: Busca por Nome
+    if (this.searchTerm.trim()) {
+      this.filterByName();
       return;
     }
     
-    this.loading = true;
-    this.pokemonService.searchPokemonByName(term).subscribe({
-      next: (pokemon) => {
-        this.pokemons = pokemon ? [pokemon] : [];
-        this.nextPage = null;
-        this.prevPage = null;
-      },
-      error: (err) => console.error('Erro ao buscar por nome:', err),
-      complete: () => (this.loading = false)
-    });
+    // 2. Prioridade: Busca Combinada por Tipo/Geração (sem paginação)
+    if (this.selectedType !== 0 || this.selectedGeneration !== 0) {
+      this.loadCombinedFilter();
+      return;
+    }
+    
+    // 3. Padrão: Paginação (apenas quando não há filtros ativos)
+    this.pokemonService.getPokemons(this.offset, this.limit)
+      .pipe(
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (data) => {
+          this.pokemons = data.results;
+          this.nextPage = data.next;
+          this.prevPage = data.previous;
+          // Se a API retornar a URL completa, você precisará parsear o offset/limit 
+          // para atualizar this.currentPage corretamente se necessário.
+        },
+        error: (err) => console.error('Erro ao carregar Pokémons:', err)
+      });
   }
 
-  // Paginação: só funciona no modo de listagem padrão (sem filtros ativos)
-  next() {
-    if (this.nextPage && this.selectedType === 0 && this.selectedGeneration === 0 && !this.searchTerm.trim()) {
+  /**
+   * Carrega os dados de Tipo e Geração para os dropdowns.
+   */
+  loadFilters(): void {
+    this.pokemonService.getTipos().subscribe(types => {
+      this.types = [{ id: 0, name: 'Todos' }, ...types];
+    });
+
+    this.pokemonService.getGenerations().subscribe(generations => {
+      this.generations = generations; // O serviço já deve incluir a opção 'Todas'
+    });
+  }
+  
+  // --- Funções de Paginação ---
+
+  next(): void {
+    if (this.nextPage) {
       this.offset += this.limit;
       this.currentPage++;
       this.loadPokemons();
     }
   }
 
-  previous() {
-    if (this.prevPage && this.offset >= this.limit && this.selectedType === 0 && this.selectedGeneration === 0 && !this.searchTerm.trim()) {
+  previous(): void {
+    if (this.prevPage && this.offset >= this.limit) {
       this.offset -= this.limit;
       this.currentPage--;
       this.loadPokemons();
     }
   }
 
-  logout() {
-    this.authService.logout();
-    this.router.navigateByUrl('/login', { replaceUrl: true });
+  // --- Funções de Filtro ---
+
+  filterByType(typeId: number): void {
+    // Se um tipo foi selecionado, o filtro combinado é chamado
+    this.loadCombinedFilter();
+  }
+
+  filterByGeneration(): void {
+    // Se uma geração foi selecionada, o filtro combinado é chamado
+    this.loadCombinedFilter();
+  }
+
+  loadCombinedFilter(): void {
+    // Limpa o termo de busca por nome, se houver
+    this.searchTerm = '';
+    
+    // Se ambos são 'Todos' (0), retorna à listagem paginada padrão
+    if (this.selectedType === 0 && this.selectedGeneration === 0) {
+      this.offset = 0; 
+      this.currentPage = 1;
+      this.loadPokemons();
+      return;
+    }
+    
+    this.loading = true;
+    this.pokemonService.getPokemonsByCombinedFilter(this.selectedGeneration, this.selectedType)
+      .pipe(
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (pokemons) => {
+          this.pokemons = pokemons;
+          // Desativa a paginação ao usar filtros combinados
+          this.nextPage = null; 
+          this.prevPage = null;
+        },
+        error: (err) => console.error('Erro ao buscar combinada:', err)
+      });
+  }
+
+  filterByName(): void {
+    const term = this.searchTerm.trim();
+    if (!term) {
+      // Se a busca for limpa, reinicia os filtros e carrega a listagem padrão
+      this.selectedType = 0;
+      this.selectedGeneration = 0;
+      this.offset = 0;
+      this.currentPage = 1;
+      this.loadPokemons();
+      return;
+    }
+
+    this.loading = true;
+    this.pokemonService.searchPokemonByName(term)
+      .pipe(
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (pokemon) => {
+          this.pokemons = pokemon ? [pokemon] : [];
+          this.nextPage = null; 
+          this.prevPage = null;
+          this.selectedType = 0;
+          this.selectedGeneration = 0;
+        },
+        error: (err) => console.error('Erro ao buscar por nome:', err)
+      });
   }
 }

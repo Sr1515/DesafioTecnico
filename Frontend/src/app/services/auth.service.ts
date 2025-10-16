@@ -1,6 +1,13 @@
+// src/app/services/auth.service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  user_id: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +23,7 @@ export class AuthService {
   }
 
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('token'); 
   }
 
   setToken(token: string) {
@@ -24,6 +31,20 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('token'); 
+  }
+  
+  getLoggedInUser(): { id: number } | null {
+    const token = this.getToken();
+    if (token) {
+      try {
+        const payload: JwtPayload = jwtDecode(token);
+        return { id: payload.user_id }; 
+      } catch (e) {
+        console.error('Falha ao decodificar JWT:', e);
+        return null;
+      }
+    }
+    return null;
   }
 }

@@ -1,0 +1,18 @@
+<app-navbar></app-navbar>
+
+<div class="home-container">
+  <h2>👥 Meu Grupo de Batalha (Equipe)</h2>
+      
+  <div *ngIf="loading" class="loading">Carregando seus Pokémon...</div>
+      
+  <div *ngIf="!loading && pokemons.length === 0" class="not-found">
+        Nenhum Pokémon na sua equipe. Adicione alguns Pokémons!
+  </div>
+
+  <div class="cards-container">
+    <app-pokemon-card
+      *ngFor="let p of pokemons"
+      [pokemon]="p"
+    ></app-pokemon-card>
+  </div>
+</div>

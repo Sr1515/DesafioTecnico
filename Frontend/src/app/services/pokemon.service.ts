@@ -1,7 +1,7 @@
-// pokemon.service.ts (Versão FINAL com remoção total da PokeAPI direta)
+// pokemon.service.ts (Versão FINAL COMPLETA)
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'; 
 import { catchError, map, Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -36,6 +36,8 @@ export interface UserPokemonData {
   grupoBatalha?: boolean;
   favorito?: boolean;
 }
+
+// --- SERVICE ---
 
 @Injectable({
   providedIn: 'root'
@@ -158,11 +160,30 @@ export class PokemonService {
     );
   }
 
-  getUserPokemonRecord(pokemonCodigo: string): Observable<UserPokemonRecord | null> {
+  getUsersPokemon(userId: number, filter: 'favorito' | 'grupoBatalha'): Observable<UserPokemonRecord[]> {
     const headers = this.getAuthHeaders();
     
+    // Constrói os parâmetros de filtro
+    const params: { [key: string]: string } = {
+        idUsuario: userId.toString()
+    };
+    
+    params[filter] = 'true'; 
+
+    return this.http.get<UserPokemonRecord[]>(this.userPokemonUrl, { headers, params }).pipe(
+      catchError(error => {
+        console.error(`Erro ao buscar Pokémon de usuário com filtro ${filter}:`, error);
+        return of([]);
+      })
+    );
+  }
+  
+  getUserPokemonRecord(pokemonCodigo: string): Observable<UserPokemonRecord | null> {
+    const headers = this.getAuthHeaders();
+    const params = new HttpParams().set('codigo', pokemonCodigo);
+    
     // Filtra todos os registros do usuário e busca pelo 'codigo'
-    return this.http.get<UserPokemonRecord[]>(`${this.userPokemonUrl}?codigo=${pokemonCodigo}`, { headers }).pipe(
+    return this.http.get<UserPokemonRecord[]>(`${this.userPokemonUrl}`, { headers, params }).pipe(
       map(records => records.find(r => r.codigo === pokemonCodigo) || null),
       catchError(error => {
         console.error('Erro ao buscar registro do usuário:', error);
@@ -178,6 +199,8 @@ export class PokemonService {
   ): Observable<any> {
     const headers = this.getAuthHeaders();
     const field = isEquipe ? 'grupoBatalha' : 'favorito';
+    const otherField = isEquipe ? 'favorito' : 'grupoBatalha';
+    
     const currentStatus = record ? record[field as keyof UserPokemonRecord] : false;
     const newStatus = !currentStatus; 
 
@@ -192,12 +215,12 @@ export class PokemonService {
 
     if (record) {
       
-      const otherField = isEquipe ? 'favorito' : 'grupoBatalha';
       const otherStatus = record[otherField as keyof UserPokemonRecord];
       
       if (newStatus === false && otherStatus === false) {
          return this.http.delete(`${this.userPokemonUrl}${record.idPokemonUsuario}/`, { headers });
       } else {
+         (payload as any)[otherField] = otherStatus;
          return this.http.patch(`${this.userPokemonUrl}${record.idPokemonUsuario}/`, payload, { headers });
       }
       

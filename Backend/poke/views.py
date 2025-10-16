@@ -25,26 +25,55 @@ class PokemonAPIViewSet(viewsets.ViewSet):
         pokemon_data = {
             "nome": data["name"],
             "id": data["id"],
-            "tipos": [t["type"]["name"] for t in data["types"]],
-            "sprites": data["sprites"],
+            "tipos": [t["type"]["name"] for t in data["types"]], # 💡 Os tipos estão aqui!
+            "imagemUrl": data["sprites"]["other"]["official-artwork"]["front_default"] if data["sprites"]["other"].get("official-artwork") else data["sprites"]["front_default"], # Adicionado campo imagemUrl
         }
         
         return Response(pokemon_data)
-    
+
     def list(self, request):
         offset = request.query_params.get('offset', 0)
         limit = request.query_params.get('limit', 20)
         
         try:
+            # 1. Faz a requisição inicial da lista paginada
             response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/?offset={offset}&limit={limit}")
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(data)
+        # 2. Itera sobre cada Pokémon e busca os detalhes completos
+        detailed_results = []
+        for result in data.get("results", []):
+            try:
+                # Extrai o ID do Pokémon da URL
+                pk_id = result["url"].rstrip("/").split("/")[-1]
+                
+                # Faz a requisição de DETALHES para cada Pokémon (Lembre-se: INEFFICIENTE)
+                detail_response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/{pk_id}")
+                detail_response.raise_for_status()
+                detail_data = detail_response.json()
+                
+                # Mapeia para o formato que seu frontend Angular espera
+                detailed_results.append({
+                    "id": detail_data["id"],
+                    "nome": detail_data["name"],
+                    "tipos": [t["type"]["name"] for t in detail_data["types"]], # 💡 CORREÇÃO
+                    "imagemUrl": detail_data["sprites"]["other"]["official-artwork"]["front_default"] if detail_data["sprites"]["other"].get("official-artwork") else detail_data["sprites"]["front_default"],
+                })
+            except requests.exceptions.RequestException:
+                # Ignora Pokémons que falham ao buscar detalhes
+                continue
+        
+        # 3. Retorna a lista modificada
+        return Response({
+            "count": data.get("count"),
+            "next": data.get("next"),
+            "previous": data.get("previous"),
+            "results": detailed_results # 💡 Lista COMPLETA
+        })
     
-
     @action(detail=False, methods=["get"], url_path="types")
     def tipos(self, request):
         try:
