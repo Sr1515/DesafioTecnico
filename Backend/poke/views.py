@@ -6,18 +6,21 @@ from .models import PokemonUsuario, TipoPokemon, Usuario
 from .serializers import UsuarioSerializer, TipoPokemonSerializer, PokemonUsuarioSerializer
 from rest_framework import permissions
 from rest_framework.decorators import action
+from rest_framework import status
 
 
 POKEAPI_BASE_URL = "https://pokeapi.co/api/v2"
 
 class PokemonAPIViewSet(viewsets.ViewSet):
+    
     def retrieve(self, request, pk=None):
         try:
             response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/{pk.lower()}")
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": f"Pokémon não encontrado ou erro na API externa: {str(e)}"}, 
+                            status=status.HTTP_404_NOT_FOUND if response.status_code == 404 else status.HTTP_400_BAD_REQUEST)
 
         pokemon_data = {
             "nome": data["name"],
@@ -29,12 +32,15 @@ class PokemonAPIViewSet(viewsets.ViewSet):
         return Response(pokemon_data)
     
     def list(self, request):
+        offset = request.query_params.get('offset', 0)
+        limit = request.query_params.get('limit', 20)
+        
         try:
-            response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/")
+            response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/?offset={offset}&limit={limit}")
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data)
     
@@ -46,7 +52,7 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         tipos = [
             {
@@ -55,7 +61,110 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             }
             for t in data["results"]
         ]
-        return Response({"tipos": tipos})
+        return Response({"tipos": tipos}) 
+
+
+    @action(detail=False, methods=["get"], url_path="search-name")
+    def search_name(self, request):
+        name = request.query_params.get('name', None)
+        if not name:
+            return Response({"error": "Parâmetro 'name' é obrigatório"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return self.retrieve(request, pk=name)
+
+
+    @action(detail=False, methods=["get"], url_path="generations")
+    def generations(self, request):
+        try:
+            response = requests.get(f"{POKEAPI_BASE_URL}/generation/?limit=10") 
+            response.raise_for_status()
+            data = response.json()
+        except requests.exceptions.RequestException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        generations = [
+            {
+                "id": int(g["url"].rstrip("/").split("/")[-1]), 
+                "name": g["name"].replace("generation-", "Geração ")
+            }
+            for g in data["results"]
+        ]
+        
+        return Response({"generations": generations})
+
+
+    @action(detail=False, methods=["get"], url_path="filter-generation")
+    def filter_generation(self, request):
+        gen_id = request.query_params.get('id', None)
+        if not gen_id or not gen_id.isdigit():
+            return Response({"error": "Parâmetro 'id' (da geração) é obrigatório e deve ser numérico"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = requests.get(f"{POKEAPI_BASE_URL}/generation/{gen_id}/")
+            response.raise_for_status()
+            data = response.json()
+        except requests.exceptions.RequestException as e:
+             return Response({"error": f"Geração não encontrada ou erro na API externa: {str(e)}"}, 
+                             status=status.HTTP_404_NOT_FOUND if response.status_code == 404 else status.HTTP_400_BAD_REQUEST)
+        
+        pokemons = [
+            {
+                "id": int(p["url"].rstrip("/").split("/")[-1]), 
+                "name": p["name"],
+            }
+            for p in data["pokemon_species"]
+        ]
+
+        return Response({"results": pokemons})
+    
+    @action(detail=False, methods=["get"], url_path="filter-combined")
+    def filter_combined(self, request):
+        """Lista Pokémons combinando Geração e Tipo."""
+        gen_id = request.query_params.get('gen_id', None)
+        type_id = request.query_params.get('type_id', None)
+        
+        if not gen_id or not type_id:
+            return Response({"error": "Os parâmetros 'gen_id' e 'type_id' são obrigatórios para a filtragem combinada."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            gen_response = requests.get(f"{POKEAPI_BASE_URL}/generation/{gen_id}/")
+            gen_response.raise_for_status()
+            gen_data = gen_response.json()
+            
+            gen_pokemons_urls = {
+                p["name"]: p["url"] 
+                for p in gen_data.get("pokemon_species", [])
+            }
+            
+            type_response = requests.get(f"{POKEAPI_BASE_URL}/type/{type_id}/")
+            type_response.raise_for_status()
+            type_data = type_response.json()
+            
+            type_pokemons_names = {
+                p["pokemon"]["name"]
+                for p in type_data.get("pokemon", [])
+            }
+            
+            combined_pokemons = []
+            for name in type_pokemons_names:
+                if name in gen_pokemons_urls:
+                    url = gen_pokemons_urls[name]
+                    pk_id = int(url.rstrip("/").split("/")[-1]) 
+                    
+                    combined_pokemons.append({
+                        "id": pk_id, 
+                        "name": name, 
+                        "url": url
+                    })
+
+        except requests.exceptions.RequestException as e:
+            return Response({"error": f"Erro na requisição à API externa: {str(e)}"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({"results": combined_pokemons})
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()

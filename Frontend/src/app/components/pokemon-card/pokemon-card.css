@@ -1,3 +1,5 @@
+/* pokemon-card.css */
+
 .pokemon-card {
   background: #fff;
   border-radius: 16px;
@@ -32,17 +34,91 @@
   font-weight: 600;
 }
 
-.pokemon-stats {
-  text-align: left;
+.pokemon-types {
+  min-height: 25px;
   margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.pokemon-stats p {
-  margin: 4px 0;
-  font-size: 14px;
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.pokemon-stats span {
-  color: #e67e22;
-  font-weight: bold;
+.normal { background-color: #a8a878; }
+.fire { background-color: #f08030; }
+.water { background-color: #6890f0; }
+.grass { background-color: #78c850; }
+.electric { background-color: #f8d030; }
+.ice { background-color: #98d8d8; }
+.fighting { background-color: #c03028; }
+.poison { background-color: #a040a0; }
+.ground { background-color: #e0c068; }
+.flying { background-color: #a890f0; }
+.psychic { background-color: #f85888; }
+.bug { background-color: #a8b820; }
+.rock { background-color: #b8a038; }
+.ghost { background-color: #705898; }
+.dragon { background-color: #7038f8; }
+.steel { background-color: #b8b8d0; }
+.fairy { background-color: #ee99ac; }
+.dark { background-color: #705848; }
+
+.loading-type {
+  color: #999;
+  font-size: 12px;
+}
+
+
+.pokemon-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+  gap: 8px;
+}
+
+.pokemon-actions button {
+  flex: 1;
+  padding: 8px;
+  border: none; 
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.pokemon-actions button:first-child {
+  background-color: #3498db; 
+}
+
+.pokemon-actions button.in-team {
+  background-color: #2ecc71; 
+}
+
+.pokemon-actions button:last-child {
+  background-color: #95a5a6;
+}
+
+.pokemon-actions button.favorited {
+  background-color: #e74c3c; 
+}
+
+.pokemon-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pokemon-actions button:not(:disabled):hover {
+  filter: brightness(1.1);
 }

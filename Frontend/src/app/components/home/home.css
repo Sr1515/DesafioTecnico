@@ -41,6 +41,58 @@ h2 {
   font-size: 26px;
 }
 
+/* NOVO: Container para os filtros de Tipo, Geração e Nome */
+.header-filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px; /* Aumentei um pouco a margem para separar do grid */
+  flex-wrap: wrap;
+}
+
+.filter-select,
+.filter-input {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background-color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-input {
+  width: 250px;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: #f39c12;
+}
+
+.search-btn {
+  background-color: #f39c12; /* Cor ajustada para o botão de busca */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: #d38a0b;
+}
+
+.not-found {
+  font-size: 18px;
+  color: #c0392b;
+  margin: 30px;
+  font-weight: bold;
+}
+
 /* Grid de cards */
 .cards-container {
   display: flex;
@@ -80,27 +132,7 @@ h2 {
   margin: 20px;
 }
 
-.filter-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.filter-container button {
-  border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
-  background-color: #eee;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.filter-container button.active {
-  background-color: #f39c12;
-  color: white;
-}
+/* BLOCOS ANTIGOS DE FILTRO DE BOTÃO REMOVIDOS */
 
 .header {
   display: flex;
@@ -109,46 +141,9 @@ h2 {
   margin-bottom: 16px;
 }
 
-.tipos {
-  margin-bottom: 16px;
-}
-
-.tipos button {
-  margin-right: 8px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: none;
-  background: #eee;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.tipos button.selected {
-  background: #e67e22;
-  color: #fff;
-}
-
-.tipos button:hover {
-  background: #d35400;
-  color: #fff;
-}
-
+/* Outros estilos que você possa ter */
 .pokemons {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-}
-
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.loading {
-  margin-top: 16px;
-  text-align: center;
-  font-weight: bold;
 }

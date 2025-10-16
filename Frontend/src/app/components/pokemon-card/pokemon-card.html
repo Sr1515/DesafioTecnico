@@ -7,8 +7,35 @@
 
   <h3 class="pokemon-name">{{ pokemon.nome | titlecase }}</h3>
 
-  <div class="pokemon-stats">
-    <p>HP: <span>{{ pokemon.hp || '??' }}</span></p>
-    <p>Ataque: <span>{{ pokemon.ataque || '??' }}</span></p>
+  <div class="pokemon-types">
+    <span 
+      *ngFor="let tipo of pokemon.tipos" 
+      class="type-badge {{ tipo }}"
+    >
+      {{ tipo | titlecase }}
+    </span>
+    <span *ngIf="!pokemon.tipos || pokemon.tipos.length === 0" class="loading-type">
+        Carregando Tipos...
+    </span>
+  </div>
+
+  <div class="pokemon-actions">
+    <button 
+      (click)="toggleTeam()" 
+      [class.in-team]="isInTeam" 
+      [disabled]="actionLoading"
+      title="Adicionar ou Remover do Grupo de Batalha (Equipe)"
+    >
+      <i class="fas fa-users"></i> {{ isInTeam ? 'Na Equipe' : 'Add Equipe' }}
+    </button>
+    
+    <button 
+      (click)="toggleFavorite()" 
+      [class.favorited]="isFavorite" 
+      [disabled]="actionLoading"
+      title="Adicionar ou Remover dos Favoritos"
+    >
+      <i class="fas fa-heart"></i> {{ isFavorite ? 'Favorito' : 'Favoritar' }}
+    </button>
   </div>
 </div>
