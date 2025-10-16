@@ -34,6 +34,7 @@ export interface UserPokemonData {
   imagemUrl: string;
   grupoBatalha?: boolean;
   favorito?: boolean;
+  tipos: Type[]
 }
 
 @Injectable({
@@ -49,7 +50,6 @@ export class PokemonService {
     private authService: AuthService
   ) {}
 
-  // formata o headers
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders({
@@ -58,7 +58,6 @@ export class PokemonService {
     });
   }
 
-  // formata os pokemons 
   private mapToPokemon(data: any): Pokemon {
     const id = Number(
       data.id ?? 
@@ -126,7 +125,7 @@ export class PokemonService {
   }
 
   getPokemonsByTipoId(id: number): Observable<Pokemon[]> {
-    
+
     if (id === 0) {
       return this.getAllPokemonsForFilter();
     }
@@ -191,11 +190,11 @@ export class PokemonService {
 
   getUsersPokemon(userId: number, filter: 'favorito' | 'grupoBatalha'): Observable<UserPokemonRecord[]> {
     const headers = this.getAuthHeaders();
-    const params: { [key: string]: string } = {
-        idUsuario: userId.toString()
-    };
     
-    params[filter] = 'true'; 
+    let params = new HttpParams()
+        .set('idUsuario', userId.toString())
+        .set(filter, 'true')
+        .set('timestamp', new Date().getTime().toString()); 
 
     return this.http.get<UserPokemonRecord[]>(this.userPokemonUrl, { headers, params }).pipe(
       catchError(error => {
