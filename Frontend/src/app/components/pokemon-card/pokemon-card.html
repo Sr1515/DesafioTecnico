@@ -1,0 +1,14 @@
+<div class="pokemon-card">
+  <div class="pokemon-header">
+    <span class="pokemon-id">#{{ pokemon.id | number: '3.0' }}</span>
+  </div>
+
+  <img [src]="pokemon.imagem" [alt]="pokemon.nome" class="pokemon-img" />
+
+  <h3 class="pokemon-name">{{ pokemon.nome | titlecase }}</h3>
+
+  <div class="pokemon-stats">
+    <p>HP: <span>{{ pokemon.hp || '??' }}</span></p>
+    <p>Ataque: <span>{{ pokemon.ataque || '??' }}</span></p>
+  </div>
+</div>

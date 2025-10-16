@@ -7,6 +7,31 @@
   </ul>
 </nav>
 
-<div class="home-content">
-  <h1>Bem-vindo ao PokeCenter!</h1>
+<div class="home-container">
+  <h2>Pokémon Descobertos</h2>
+
+  <div class="filter-container">
+    <button
+      *ngFor="let t of types"
+      (click)="filterByType(t)"
+      [class.active]="selectedType === t.name"
+    >
+      {{ t.name | titlecase }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Carregando Pokémons...</div>
+
+  <div class="cards-container">
+    <app-pokemon-card
+      *ngFor="let p of pokemons"
+      [pokemon]="p"
+    ></app-pokemon-card>
+  </div>
+
+  <div class="pagination">
+    <button (click)="previous()" [disabled]="!prevPage">Anterior</button>
+    <span>Página {{ currentPage }}</span>
+    <button (click)="next()" [disabled]="!nextPage">Próxima</button>
+  </div>
 </div>

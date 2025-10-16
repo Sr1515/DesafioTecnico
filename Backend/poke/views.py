@@ -5,6 +5,8 @@ import requests
 from .models import PokemonUsuario, TipoPokemon, Usuario
 from .serializers import UsuarioSerializer, TipoPokemonSerializer, PokemonUsuarioSerializer
 from rest_framework import permissions
+from rest_framework.decorators import action
+
 
 POKEAPI_BASE_URL = "https://pokeapi.co/api/v2"
 
@@ -35,6 +37,25 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             return Response({"error": str(e)}, status=400)
 
         return Response(data)
+    
+
+    @action(detail=False, methods=["get"], url_path="types")
+    def tipos(self, request):
+        try:
+            response = requests.get(f"{POKEAPI_BASE_URL}/type/")
+            response.raise_for_status()
+            data = response.json()
+        except requests.exceptions.RequestException as e:
+            return Response({"error": str(e)}, status=400)
+
+        tipos = [
+            {
+                "id": int(t["url"].rstrip("/").split("/")[-1]), 
+                "name": t["name"]
+            }
+            for t in data["results"]
+        ]
+        return Response({"tipos": tipos})
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
