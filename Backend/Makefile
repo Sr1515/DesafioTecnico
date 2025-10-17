@@ -1,8 +1,20 @@
+build:
+	docker compose build
+
 run: 
-	python3 manage.py runserver
+	docker compose up -d
+
+off:
+	docker compose down
+
+logs:
+	docker compose logs -f api
 
 mk: 
-	python3 manage.py makemigrations
+	docker compose exec api python manage.py makemigrations
 
 mg: 
-	python3 manage.py migrate
+	docker compose exec api python manage.py migrate
+
+create-admin:
+	docker compose exec api python manage.py createsuperuser
