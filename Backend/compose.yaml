@@ -1,0 +1,9 @@
+services:
+  api:
+    container_name: api_backend
+    build:
+      context: .
+    env_file:
+      - ./.environment/.env.django
+    ports:
+      - "8000:8000"

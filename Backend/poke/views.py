@@ -81,7 +81,6 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             }
             for t in data["results"]
         ]
-        print(tipos)
         return Response({"tipos": tipos}) 
 
 
@@ -112,7 +111,6 @@ class PokemonAPIViewSet(viewsets.ViewSet):
             for g in data["results"]
         ]
         
-        print(generations)
         return Response({"generations": generations})
 
 
