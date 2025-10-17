@@ -1,13 +1,8 @@
-import os
-import environ
 from pathlib import Path
 from datetime import timedelta
+from .environSettings import env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.environment', '.env.django'))
-
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 JWT_SECRET = env('JWT_SECRET')
