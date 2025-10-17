@@ -1,7 +1,8 @@
 export interface Type {
   id: number;
-  descricao: string;
+  name: string;
 }
+
 export interface Generation {
   id: number;
   name: string;
@@ -11,6 +12,7 @@ export interface Pokemon {
   id: number;
   nome: string;
   imagem: string;
+  tipos: Type[];
 }
 export interface UserPokemonRecord {
   idPokemonUsuario: number;
@@ -26,6 +28,7 @@ export interface UserPokemonData {
   imagemUrl: string;
   grupoBatalha?: boolean;
   favorito?: boolean;
+  tipos: Type[];
 }
 
 export interface JwtPayload {

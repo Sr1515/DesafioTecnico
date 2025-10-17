@@ -48,6 +48,7 @@ export class PokemonCardComponent implements OnInit {
       codigo: this.pokemon.id.toString(),
       nome: this.pokemon.nome,
       imagemUrl: this.pokemon.imagem,
+      tipos: this.pokemon.tipos,
     };
   }
 

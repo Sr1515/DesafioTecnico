@@ -48,6 +48,7 @@ export class FavoritesComponent implements OnInit {
               id: Number(record.codigo),
               nome: record.nome,
               imagem: record.imagemUrl,
+              tipos: [],
             }));
         },
         error: (err) => console.error('Erro ao carregar favoritos:', err),
