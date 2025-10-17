@@ -9,10 +9,14 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
-COPY . /code/
-
 EXPOSE 8000
 
-RUN chmod +x /app/script.sh
+COPY ./script.sh /start
+RUN sed -i 's/\r$//g' /start
+RUN chmod +x /start
+
+COPY . /code/
+
+
 
 
