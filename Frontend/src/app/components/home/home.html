@@ -4,58 +4,43 @@
   <h2>Pokémon Descobertos</h2>
 
   <div class="header-filters">
-    
-    <select 
-      [(ngModel)]="selectedType" 
-      (change)="filterByType(selectedType)"
-      class="filter-select"
-    >
-      <option 
-        *ngFor="let t of types" 
-        [ngValue]="t.id"
-      >
+    <select [(ngModel)]="selectedType" (change)="filterByType(selectedType)" class="filter-select">
+      <option *ngFor="let t of types" [ngValue]="t.id">
         {{ t.name | titlecase }}
       </option>
     </select>
-    
-    <select 
-      [(ngModel)]="selectedGeneration" 
-      (change)="filterByGeneration()"
-      class="filter-select"
-    >
-      <option 
-        *ngFor="let gen of generations" 
-        [ngValue]="gen.id"
-      >
+
+    <select [(ngModel)]="selectedGeneration" (change)="filterByGeneration()" class="filter-select">
+      <option *ngFor="let gen of generations" [ngValue]="gen.id">
         {{ gen.name }}
       </option>
     </select>
-    
-    <input 
-      type="text" 
+
+    <input
+      type="text"
       placeholder="Buscar por nome"
       [(ngModel)]="searchTerm"
       (keyup.enter)="filterByName()"
       class="filter-input"
     />
-    
+
     <button (click)="filterByName()" class="search-btn">Buscar</button>
   </div>
-  
+
   <div *ngIf="loading" class="loading">Carregando Pokémons...</div>
-  
+
   <div *ngIf="!loading && pokemons.length === 0" class="not-found">
     Nenhum Pokémon encontrado com os filtros aplicados.
   </div>
 
   <div class="cards-container">
-    <app-pokemon-card
-      *ngFor="let p of pokemons"
-      [pokemon]="p"
-    ></app-pokemon-card>
+    <app-pokemon-card *ngFor="let p of pokemons" [pokemon]="p"></app-pokemon-card>
   </div>
 
-  <div class="pagination" *ngIf="selectedType === 0 && selectedGeneration === 0 && !searchTerm.trim()">
+  <div
+    class="pagination"
+    *ngIf="selectedType === 0 && selectedGeneration === 0 && !searchTerm.trim()"
+  >
     <button (click)="previous()" [disabled]="!prevPage">Anterior</button>
     <span>Página {{ currentPage }}</span>
     <button (click)="next()" [disabled]="!nextPage">Próxima</button>

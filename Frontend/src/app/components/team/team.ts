@@ -2,10 +2,11 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
-import { PokemonService, Pokemon, UserPokemonRecord } from '../../services/pokemon.service';
 import { AuthService } from '../../services/auth.service';
 import { PokemonCardComponent } from '../pokemon-card/pokemon-card';
 import { NavbarComponent } from '../../shared/navbar/navbar';
+import { PokemonService } from '../../services/pokemon.service';
+import { Pokemon, UserPokemonRecord } from '../../types/types';
 
 @Component({
   selector: 'app-team',

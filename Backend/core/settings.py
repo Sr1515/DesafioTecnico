@@ -9,7 +9,6 @@ JWT_SECRET = env('JWT_SECRET')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1'])
 AUTH_USER_MODEL = "poke.Usuario"
 
-
 INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',

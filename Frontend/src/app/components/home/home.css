@@ -15,7 +15,7 @@ h2 {
   justify-content: center;
   align-items: center;
   gap: 15px;
-  margin-bottom: 30px; 
+  margin-bottom: 30px;
   flex-wrap: wrap;
 }
 
@@ -40,7 +40,7 @@ h2 {
 }
 
 .search-btn {
-  background-color: #f39c12; 
+  background-color: #f39c12;
   color: white;
   border: none;
   border-radius: 8px;
@@ -70,7 +70,6 @@ h2 {
   max-width: 1100px;
 }
 
-/* Paginação */
 .pagination {
   margin-top: 30px;
   display: flex;

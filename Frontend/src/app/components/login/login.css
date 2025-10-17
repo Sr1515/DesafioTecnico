@@ -1,14 +1,14 @@
 .login-input {
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: flex-start;
-  gap: 1rem; 
+  gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .login-input label {
   width: 80px;
-  text-align: right; 
+  text-align: right;
   font-weight: 500;
   color: #333;
 }
@@ -36,7 +36,7 @@
   background: white;
   padding: 2rem;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 450px;
   display: flex;
   flex-direction: column;

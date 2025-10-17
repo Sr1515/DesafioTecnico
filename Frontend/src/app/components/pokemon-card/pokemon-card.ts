@@ -1,12 +1,8 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import {
-  Pokemon,
-  PokemonService,
-  UserPokemonData,
-  UserPokemonRecord,
-} from '../../services/pokemon.service';
 import { finalize } from 'rxjs';
+import { Pokemon, UserPokemonData, UserPokemonRecord } from '../../types/types';
+import { PokemonService } from '../../services/pokemon.service';
 
 @Component({
   selector: 'app-pokemon-card',
@@ -18,12 +14,12 @@ import { finalize } from 'rxjs';
 export class PokemonCardComponent implements OnInit {
   @Input() pokemon!: Pokemon;
 
+  private pokemonService = inject(PokemonService);
+
   private userRecord: UserPokemonRecord | null = null;
   public isInTeam: boolean = false;
   public isFavorite: boolean = false;
   public actionLoading: boolean = false;
-
-  constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
     this.checkPokemonStatus();

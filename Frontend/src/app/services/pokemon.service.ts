@@ -1,41 +1,8 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { catchError, map, Observable, of } from 'rxjs'; // Importante: 'of' é essencial
-// Não é necessário 'switchMap' neste caso, mas 'of' é crucial.
+import { catchError, map, Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
-
-export interface Type {
-  id: number;
-  name: string;
-}
-
-export interface Generation {
-  id: number;
-  name: string;
-}
-
-export interface Pokemon {
-  id: number;
-  nome: string;
-  imagem: string;
-  tipos: Type[];
-}
-export interface UserPokemonRecord {
-  idPokemonUsuario: number;
-  codigo: string;
-  grupoBatalha: boolean;
-  favorito: boolean;
-  nome: string;
-  imagemUrl: string;
-}
-export interface UserPokemonData {
-  codigo: string;
-  nome: string;
-  imagemUrl: string;
-  grupoBatalha?: boolean;
-  favorito?: boolean;
-  tipos: Type[];
-}
+import { Generation, Pokemon, Type, UserPokemonData, UserPokemonRecord } from '../types/types';
 
 @Injectable({
   providedIn: 'root',
@@ -44,7 +11,8 @@ export class PokemonService {
   private apiUrl = 'http://127.0.0.1:8000/api/pokemon/';
   private userPokemonUrl = 'http://127.0.0.1:8000/api/pokemon-usuario/';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.getToken();

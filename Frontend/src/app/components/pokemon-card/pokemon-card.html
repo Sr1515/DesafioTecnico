@@ -1,6 +1,6 @@
 <div class="pokemon-card">
   <div class="pokemon-header">
-    <span class="pokemon-id">#{{ pokemon.id | number: '3.0' }}</span>
+    <span class="pokemon-id">#{{ pokemon.id | number : '3.0' }}</span>
   </div>
 
   <img [src]="pokemon.imagem" [alt]="pokemon.nome" class="pokemon-img" />
@@ -8,30 +8,27 @@
   <h3 class="pokemon-name">{{ pokemon.nome | titlecase }}</h3>
 
   <div class="pokemon-types">
-    <span 
-      *ngFor="let tipo of pokemon.tipos" 
-      class="type-badge {{ tipo.name }}" 
-    >
+    <span *ngFor="let tipo of pokemon.tipos" class="type-badge {{ tipo.name }}">
       {{ tipo.name | titlecase }}
     </span>
     <span *ngIf="!pokemon.tipos || pokemon.tipos.length === 0" class="loading-type">
-        Carregando Tipos...
+      Carregando Tipos...
     </span>
   </div>
 
   <div class="pokemon-actions">
-    <button 
-      (click)="toggleTeam()" 
-      [class.in-team]="isInTeam" 
+    <button
+      (click)="toggleTeam()"
+      [class.in-team]="isInTeam"
       [disabled]="actionLoading"
       title="Adicionar ou Remover do Grupo de Batalha (Equipe)"
     >
       <i class="fas fa-users"></i> {{ isInTeam ? 'Na Equipe' : 'Add Equipe' }}
     </button>
-    
-    <button 
-      (click)="toggleFavorite()" 
-      [class.favorited]="isFavorite" 
+
+    <button
+      (click)="toggleFavorite()"
+      [class.favorited]="isFavorite"
       [disabled]="actionLoading"
       title="Adicionar ou Remover dos Favoritos"
     >
