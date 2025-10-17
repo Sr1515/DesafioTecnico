@@ -7,3 +7,9 @@ services:
       - ./.environment/.env.django
     ports:
       - "8000:8000"
+    volumes:
+      - .:/code
+      - static_volume:/code/static
+
+volumes:
+  static_volume:

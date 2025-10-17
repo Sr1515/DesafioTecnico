@@ -219,15 +219,54 @@ class PokemonUsuarioViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         resp = self.checkEquipeBatalhaLimit(request.user, request.data.get('grupoBatalha', False))
+        
         if resp:
             return resp
-        return super().create(request, *args, **kwargs)
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        nomePokemon = serializer.validated_data.get("nome")
+        response = requests.get(f"{POKEAPI_BASE_URL}/pokemon/{nomePokemon}")
+        response.raise_for_status()
+        data = response.json().get("types")
+        
+        tipos = []
+        
+        for element in data:
+            type_name = element.get("type").get("name")
+            pokemon = TipoPokemon.objects.filter(descricao = type_name)
+            
+            if not pokemon.exists():
+                pokemon = TipoPokemon.objects.create(descricao = type_name)
+            else:
+                pokemon = pokemon.first()
+            
+            tipos.append(pokemon)    
+        
+        pokemon = self.perform_create(serializer)
+        pokemon.tipos.set(tipos)
+        
+        pokemon.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        resp = self.checkEquipeBatalhaLimit(request.user, request.data.get('grupoBatalha', False))
-        if resp:
-            return resp
+        instance = self.get_object()
+        novoGrupoBatalha = request.data.get('grupoBatalha')
+        
+        estaTentandoPromoverParaEquipe = (
+            (novoGrupoBatalha in [True, 'true', 'True', 1, '1']) and 
+            (instance.grupoBatalha == False) 
+        )
+
+        if estaTentandoPromoverParaEquipe:
+            resp = self.checkEquipeBatalhaLimit(request.user, novoGrupoBatalha)
+            
+            if resp:
+                return resp
+            
         return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        serializer.save(idUsuario=self.request.user)
+       return serializer.save(idUsuario=self.request.user)
