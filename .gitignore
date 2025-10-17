@@ -41,9 +41,6 @@ __pycache__/
 Backend/.environment/.env.postgres
 Backend/.environment/.env.django
 
-**/migrations/*.py
-!**/migrations/__init__.py
-
 *.manifest
 *.spec
 
