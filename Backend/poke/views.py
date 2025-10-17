@@ -208,12 +208,27 @@ class PokemonUsuarioViewSet(viewsets.ModelViewSet):
     serializer_class = PokemonUsuarioSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def create(self, *args, **kwargs):
-        user = self.request.user
-        if user.pokemons.filter(grupoBatalha=True).count() == 6:
-            return Response({"erro": "Só é permitido 6 pokemons por equipe"}, 403)
-        
-        super().create(*args, **kwargs)
+    def checkEquipeBatalhaLimit(self, user, grupo_batalha):
+        if grupo_batalha in [True, 'true', 'True', 1, '1']:
+            equipe_count = user.pokemons.filter(grupoBatalha=True).count()
+            if equipe_count >= 6:
+                return Response(
+                    {"erro": "Só é permitido 6 pokémons na equipe de batalha"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        return None
+
+    def create(self, request, *args, **kwargs):
+        resp = self.checkEquipeBatalhaLimit(request.user, request.data.get('grupoBatalha', False))
+        if resp:
+            return resp
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        resp = self.checkEquipeBatalhaLimit(request.user, request.data.get('grupoBatalha', False))
+        if resp:
+            return resp
+        return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(idUsuario=self.request.user)

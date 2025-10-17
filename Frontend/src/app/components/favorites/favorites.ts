@@ -1,59 +1,56 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router'; // Router (o serviço) é usado, RouterLink (a diretiva) não
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
-import { PokemonService, Pokemon } from '../../services/pokemon.service';
+import { PokemonService, Pokemon, UserPokemonRecord } from '../../services/pokemon.service';
 import { AuthService } from '../../services/auth.service';
 import { PokemonCardComponent } from '../pokemon-card/pokemon-card';
 import { NavbarComponent } from '../../shared/navbar/navbar';
-
 @Component({
   selector: 'app-favorites',
   standalone: true,
-  // RouterLink removido dos imports
-  imports: [CommonModule, PokemonCardComponent, NavbarComponent], 
+  imports: [CommonModule, PokemonCardComponent, NavbarComponent],
   templateUrl: './favorites.html',
-  styleUrls: ['../home/home.css'] 
+  styleUrls: ['../home/home.css'],
 })
 export class FavoritesComponent implements OnInit {
-
   private pokemonService = inject(PokemonService);
   private authService = inject(AuthService);
   private router = inject(Router);
 
   pokemons: Pokemon[] = [];
   loading = false;
-  currentUserId: number | undefined; 
+  currentUserId: number | undefined;
 
   ngOnInit(): void {
-    const user = this.authService.getLoggedInUser(); 
-    this.currentUserId = user?.id; 
+    const user = this.authService.getLoggedInUser();
+    this.currentUserId = user?.id;
 
     if (this.currentUserId) {
-        this.loadUserPokemons();
+      this.loadUserPokemons();
     } else {
-        console.error('ID do usuário não encontrado. Redirecionando...');
+      console.error('ID do usuário não encontrado. Redirecionando...');
     }
   }
 
   loadUserPokemons(): void {
-    
     this.loading = true;
-    
-    this.pokemonService.getUsersPokemon(this.currentUserId!, 'favorito')
-      .pipe(
-        finalize(() => this.loading = false)
-      )
+
+    this.pokemonService
+      .getUsersPokemon(this.currentUserId!, 'favorito')
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: (userRecords) => {
-          this.pokemons = userRecords.map(record => ({
-            id: Number(record.codigo), 
-            nome: record.nome,
-            imagem: record.imagemUrl,
-            tipos: [] 
-          }));
+        next: (userRecords: UserPokemonRecord[]) => {
+          this.pokemons = userRecords
+            .filter((record) => record.favorito)
+            .map((record) => ({
+              id: Number(record.codigo),
+              nome: record.nome,
+              imagem: record.imagemUrl,
+              tipos: [],
+            }));
         },
-        error: (err) => console.error('Erro ao carregar favoritos:', err)
+        error: (err) => console.error('Erro ao carregar favoritos:', err),
       });
   }
 
