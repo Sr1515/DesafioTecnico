@@ -49,7 +49,6 @@ export class TeamComponent implements OnInit {
               id: Number(record.codigo),
               nome: record.nome,
               imagem: record.imagemUrl,
-              tipos: [],
             }));
         },
         error: (err) => console.error('Erro ao carregar equipe:', err),

@@ -7,14 +7,17 @@
 
   <h3 class="pokemon-name">{{ pokemon.nome | titlecase }}</h3>
 
-  <div class="pokemon-types">
-    <span *ngFor="let tipo of pokemon.tipos" class="type-badge {{ tipo.name }}">
-      {{ tipo.name | titlecase }}
-    </span>
-    <span *ngIf="!pokemon.tipos || pokemon.tipos.length === 0" class="loading-type">
-      Carregando Tipos...
-    </span>
-  </div>
+  <!-- <div class="pokemon-types">
+    <ng-container *ngIf="pokemon.tipos && pokemon.tipos.length > 0; else noTypes">
+      <span *ngFor="let tipo of pokemon.tipos" class="type-badge {{ tipo.descricao }}">
+        {{ tipo.descricao | titlecase }}
+      </span>
+    </ng-container>
+
+    <ng-template #noTypes>
+      <span class="loading-type">Carregando Tipos...</span>
+    </ng-template>
+  </div> -->
 
   <div class="pokemon-actions">
     <button

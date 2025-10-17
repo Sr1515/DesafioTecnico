@@ -2,21 +2,25 @@
   <h2>Login</h2>
 
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-    <div class="login-input">
-      <label>Usuário</label>
-      <input type="text" formControlName="login" />
+    <div class="login-input-group">
+      <div class="login-input">
+        <label>Usuário</label>
+        <input type="text" formControlName="login" />
+      </div>
 
       <div *ngIf="loginForm.get('login')?.touched && loginForm.get('login')?.invalid">
-        <small>login é obrigatório</small>
+        <small class="validation-message">Login é obrigatório</small>
       </div>
     </div>
 
-    <div class="login-input">
-      <label>Senha</label>
-      <input type="password" formControlName="password" />
+    <div class="login-input-group">
+      <div class="login-input">
+        <label>Senha</label>
+        <input type="password" formControlName="password" />
+      </div>
 
       <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
-        <small>Senha é obrigatória</small>
+        <small class="validation-message">Senha é obrigatória</small>
       </div>
     </div>
 
