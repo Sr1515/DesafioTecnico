@@ -1,6 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
-from .environSettings import env
+from .environ import env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY')
@@ -12,6 +12,7 @@ AUTH_USER_MODEL = "poke.Usuario"
 INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,7 +54,7 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'idUsuario',
     'USER_ID_CLAIM': 'user_id',
     
-    'ACESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 

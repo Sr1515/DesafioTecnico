@@ -1,9 +1,3 @@
-__pycache__/
-*.py[cod]
-*$py.class
-
-*.so
-
 .env
 .venv
 env/
@@ -12,37 +6,54 @@ ENV/
 env.bak/
 venv.bak/
 
-*.local
-*.secret
 *.env
 *.env.*
+*.local
+*.secret
 .envrc
 config/settings/local.py
 
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
 *.log
 *.pot
 *.pyc
-*.pyo
-*.pyd
+*.manifest
+*.spec
+
 db.sqlite3
 db.sqlite3-journal
+
 media/
 staticfiles/
 static_root/
 static/
-__pycache__/
 
 *.jwt
 *.token
 
-!*Backend/.environment/.env.postgres.example
-!*Backend/.environment/.env.django.example
+Backend/.environment/*
 
-Backend/.environment/.env.postgres
-Backend/.environment/.env.django
+# Permitir apenas os arquivos de exemplo
+!Backend/.environment/.env.django.example
 
-*.manifest
-*.spec
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+dist/
+build/
+coverage/
+.tmp/
+.sass-cache/
+
+.angular/
+.angular/cache/
 
 .vscode/
 .idea/
@@ -52,6 +63,4 @@ Backend/.environment/.env.django
 .DS_Store
 Thumbs.db
 desktop.ini
-
-
 

@@ -7,7 +7,7 @@ from .serializers import UsuarioSerializer, TipoPokemonSerializer, PokemonUsuari
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework import status
-from core.environSettings import env
+from core.environ import env
 
 POKEAPI_BASE_URL = env("POKEAPI_BASE_URL")
 
